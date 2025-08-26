@@ -86,7 +86,11 @@ class LearningEngine:
         print(f"Self-Reflection: Win Rate: {win_rate:.2f}, Total P/L: {total_pl:.2f}")
         if win_rate < threshold_win_rate or total_pl < 0:
             print("Performance below threshold. Triggering optimization and evolution.")
-            self.optimize_strategies(historical_df)
+            required = {'Open', 'High', 'Low', 'Close', 'Volume'}
+            if required.issubset(historical_df.columns):
+                self.optimize_strategies(historical_df)
+            else:  # pragma: no cover - exercised when minimal data provided
+                print("Skipping optimization due to missing OHLCV data")
             # Attempt to evolve strategies using genetic algorithm
             try:
                 self.ai.evolve_strategies(historical_df)
