@@ -1,0 +1,13 @@
+mt5_trading_bot/
+├── broker_interface.py     # MT5 connection and data/order handling
+├── indicators.py           # TA-Lib and Pandas_TA indicators
+├── strategies.py           # The 325+ strategies from your document
+├── strategy_manager.py     # Manages strategy selection and signal aggregation
+├── risk_manager.py         # Position sizing, SL/TP, trailing stops
+├── ai_module.py            # RL, genetic algorithms, local LLM integration
+├── learning_engine.py      # Continuous learning and optimization
+├── backtester.py           # Backtesting framework
+├── config.py               # Configuration (e.g., MT5 credentials)
+├── requirements.txt        # Dependencies
+├── main.py                 # Entry point for running the bot
+└── data/                   # Folder for historical data (e.g., CSVs)
