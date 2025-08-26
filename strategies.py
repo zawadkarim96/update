@@ -1,11 +1,24 @@
 import numpy as np
 import pandas as pd
-import talib
+
+try:  # TA‑Lib is optional; provide fallbacks when unavailable
+    import talib  # type: ignore
+except Exception:  # pragma: no cover - executed when TA‑Lib isn't installed
+    talib = None
 
 # 1
 def moving_average_crossover(df, multi_data=None, sym=None, news_bias=0):
-    short_ma = talib.SMA(df['Close'], timeperiod=50)
-    long_ma = talib.SMA(df['Close'], timeperiod=200)
+    """Simple moving‑average crossover strategy.
+
+    When TA‑Lib is unavailable the moving averages are computed using
+    ``pandas`` to keep the strategy functional for tests.
+    """
+    if talib is not None:
+        short_ma = talib.SMA(df['Close'], timeperiod=50)
+        long_ma = talib.SMA(df['Close'], timeperiod=200)
+    else:  # pragma: no cover - used when TA‑Lib isn't installed
+        short_ma = df['Close'].rolling(50).mean()
+        long_ma = df['Close'].rolling(200).mean()
     return np.where(short_ma > long_ma, 1, np.where(short_ma < long_ma, -1, 0))
 
 # 2

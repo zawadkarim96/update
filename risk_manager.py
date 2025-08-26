@@ -1,7 +1,35 @@
-import talib
-import MetaTrader5 as mt5
+"""Risk management utilities used by the trading bot.
+
+This module previously hard‑required the :mod:`talib` and
+``MetaTrader5`` packages which are not available in the execution
+environment used for the kata.  The tests exercise only a small subset
+of the functionality so we provide lightweight fallbacks that mimic the
+behaviour of these dependencies when they are missing.
+
+The goal is not to be feature complete but to supply enough behaviour
+for unit tests to run using pure Python and ``pandas``.
+"""
+
 import pandas as pd
+
+try:  # Optional dependency – TA‑Lib provides many indicators
+    import talib  # type: ignore
+except Exception:  # pragma: no cover - executed when TA‑Lib isn't installed
+    talib = None
+
+import MetaTrader5 as mt5  # this is a tiny stub during testing
+
 from config import RISK_PER_TRADE, INITIAL_CAPITAL
+
+
+def _atr_fallback(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    """Compute a simple Average True Range when TA‑Lib is unavailable."""
+    high_low = df['High'] - df['Low']
+    high_close = (df['High'] - df['Close'].shift()).abs()
+    low_close = (df['Low'] - df['Close'].shift()).abs()
+    ranges = pd.concat([high_low, high_close, low_close], axis=1)
+    tr = ranges.max(axis=1)
+    return tr.rolling(period).mean()
 
 class RiskManager:
     def __init__(self, account_balance=INITIAL_CAPITAL):
@@ -33,7 +61,11 @@ class RiskManager:
         """Set dynamic stop-loss and take-profit based on ATR and volatility."""
         if len(df) < 14:
             raise ValueError("Insufficient data for ATR calculation")
-        atr = talib.ATR(df['High'], df['Low'], df['Close'], 14).iloc[-1]
+        if talib is not None:
+            atr_series = talib.ATR(df['High'], df['Low'], df['Close'], 14)
+        else:  # pragma: no cover - used when TA‑Lib is missing
+            atr_series = _atr_fallback(df)
+        atr = atr_series.iloc[-1]
         if pd.isna(atr) or atr == 0:
             atr = 0.0001  # Fallback to avoid zero ATR
         volatility = atr * atr_mult_sl  # Dynamic based on volatility
@@ -49,7 +81,11 @@ class RiskManager:
         """Calculate dynamic trailing stop based on ATR."""
         if df is None or len(df) < 14:
             return None
-        atr = talib.ATR(df['High'], df['Low'], df['Close'], 14).iloc[-1]
+        if talib is not None:
+            atr_series = talib.ATR(df['High'], df['Low'], df['Close'], 14)
+        else:  # pragma: no cover - used when TA‑Lib is missing
+            atr_series = _atr_fallback(df)
+        atr = atr_series.iloc[-1]
         if pd.isna(atr) or atr == 0:
             return None
         if direction == 1:
