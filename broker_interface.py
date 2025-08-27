@@ -28,8 +28,10 @@ from config import MT5_ACCOUNT, MT5_PASSWORD, MT5_SERVER, MT5_PATH
 
 try:  # MetaTrader5 is optional – tests may run without it
     import MetaTrader5 as mt5  # type: ignore
+    MT5_STUB = getattr(mt5, "META_TRADER5_STUB", False)
 except Exception:  # pragma: no cover - executed when MT5 isn't installed
-    mt5 = None
+    import metatrader5_stub as mt5  # type: ignore
+    MT5_STUB = True
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ class MT5Broker:
     """Broker implementation backed by MetaTrader5."""
 
     def __init__(self) -> None:
-        if mt5 is None:
+        if MT5_STUB:
             raise RuntimeError("MetaTrader5 package is not available")
         if not mt5.initialize(path=MT5_PATH):
             raise Exception("MT5 initialization failed")

@@ -2,7 +2,10 @@ import pandas as pd
 import numpy as np
 from mt5_trading_bot.risk_manager import RiskManager
 import pytest
-import MetaTrader5 as mt5
+try:
+    import MetaTrader5 as mt5
+except Exception:  # pragma: no cover - executed when MT5 isn't installed
+    import metatrader5_stub as mt5
 
 @pytest.fixture
 def sample_df():
@@ -15,7 +18,7 @@ def sample_df():
 
 def test_calculate_position_size(sample_df, mocker):
     mt5.initialize()
-    mocker.patch('MetaTrader5.symbol_info', return_value=mt5.SymbolInfo(symbol="EURUSD"))
+    mocker.patch('mt5_trading_bot.risk_manager.mt5.symbol_info', return_value=mt5.SymbolInfo(symbol="EURUSD"))
     rm = RiskManager(10000)
     size = rm.calculate_position_size(1.1000, 1.0950, "EURUSD")
     assert size > 0.01 and size <= 10.0  # Reasonable range
