@@ -24,9 +24,7 @@ except ImportError as e:  # pragma: no cover - executed when pandas isn't availa
 try:  # MetaTrader5 may not be installed in some environments
     import MetaTrader5 as mt5  # type: ignore
 except Exception:  # pragma: no cover - executed when MT5 isn't available
-    from types import SimpleNamespace
-
-    mt5 = SimpleNamespace(ORDER_TYPE_BUY=0, ORDER_TYPE_SELL=1)
+    import metatrader5_stub as mt5  # type: ignore
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
