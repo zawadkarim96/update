@@ -1,9 +1,16 @@
 import pandas as pd
 import numpy as np
 import logging
+import warnings
 from typing import List, Optional
 
 logger = logging.getLogger(__name__)
+
+# Provide removed aliases for numpy 2.0+ so older libraries keep working
+if not hasattr(np, "NaN"):
+    np.NaN = np.nan
+
+warnings.filterwarnings("ignore", category=FutureWarning, module="ta")
 
 try:
     import talib
@@ -421,6 +428,7 @@ def get_all_indicators(df: pd.DataFrame, include_price=False, multi_data: Option
         _compute_custom_indicators(df, multi_data)
     ]
     result = pd.concat(frames, axis=1)
+    result.replace([np.inf, -np.inf], np.nan, inplace=True)
     if include_price:
         result = pd.concat([result, df[['Open', 'High', 'Low', 'Close', 'Volume']]], axis=1)
     return result.ffill().fillna(0)  # Forward fill then 0 for remaining NaNs

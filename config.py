@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 # In the real project MT5 credentials are required for live trading.  The
 # unit tests run in an isolated environment so we provide harmless defaults
@@ -22,6 +23,15 @@ POLLING_INTERVAL = 60   # Seconds between real-time data fetches (M1 = 1 minute)
 
 # AI Settings
 LLM_MODEL_PATH = os.getenv("LLM_MODEL_PATH", "")
+if not LLM_MODEL_PATH:
+    repo_dir = Path(__file__).resolve().parent
+    candidates = list(repo_dir.glob("*.gguf")) + list(repo_dir.glob("*.bin"))
+    if not candidates:
+        qwen_dir = repo_dir / "qwen-3b"
+        if qwen_dir.is_dir():
+            candidates = list(qwen_dir.glob("*.gguf")) + list(qwen_dir.glob("*.bin"))
+    if candidates:
+        LLM_MODEL_PATH = str(candidates[0])
 
 
 RL_ENV_PARAMS = {
@@ -38,3 +48,4 @@ DEFAULT_STRATEGY_WEIGHTS = {
 # Optimization Settings
 OPTIMIZATION_INTERVAL = "daily"  # Options: 'daily', 'weekly', 'monthly'
 OPTIMIZATION_MIN_ROWS = 2000    # Minimum data rows for learning_engine
+
