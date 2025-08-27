@@ -275,16 +275,15 @@ def _compute_ta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     result['TA2_ADX'] = trend.ADXIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).adx()
     result['TA2_ADX_NEG'] = trend.ADXIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).adx_neg()
     result['TA2_ADX_POS'] = trend.ADXIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).adx_pos()
-    result['TA2_AROON_DOWN'] = trend.AroonIndicator(close=df['Close'], window=25).aroon_down()
-    result['TA2_AROON_UP'] = trend.AroonIndicator(close=df['Close'], window=25).aroon_up()
+    result['TA2_AROON_DOWN'] = trend.AroonIndicator(high=df['High'], low=df['Low'], window=25).aroon_down()
+    result['TA2_AROON_UP'] = trend.AroonIndicator(high=df['High'], low=df['Low'], window=25).aroon_up()
     result['TA2_CCI'] = trend.CCIIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=20).cci()
     result['TA2_DPO'] = trend.DPOIndicator(close=df['Close'], window=20).dpo()
     result['TA2_EMA'] = trend.EMAIndicator(close=df['Close'], window=20).ema_indicator()
-    result['TA2_ICHIMOKU_A'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], tenkan_window=9, kijun_window=26, senkou_window=52).ichimoku_a()
-    result['TA2_ICHIMOKU_B'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], tenkan_window=9, kijun_window=26, senkou_window=52).ichimoku_b()
-    result['TA2_ICHIMOKU_BASE'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], tenkan_window=9, kijun_window=26, senkou_window=52).ichimoku_base_line()
-    result['TA2_ICHIMOKU_CONV'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], tenkan_window=9, kijun_window=26, senkou_window=52).ichimoku_conversion_line()
-    result['TA2_KAMA'] = trend.KAMAIndicator(close=df['Close'], window=10, pow1=2, pow2=30).kama()
+    result['TA2_ICHIMOKU_A'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], window1=9, window2=26, window3=52).ichimoku_a()
+    result['TA2_ICHIMOKU_B'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], window1=9, window2=26, window3=52).ichimoku_b()
+    result['TA2_ICHIMOKU_BASE'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], window1=9, window2=26, window3=52).ichimoku_base_line()
+    result['TA2_ICHIMOKU_CONV'] = trend.IchimokuIndicator(high=df['High'], low=df['Low'], window1=9, window2=26, window3=52).ichimoku_conversion_line()
     result['TA2_MACD'] = trend.MACD(close=df['Close'], window_fast=12, window_slow=26, window_sign=9).macd()
     result['TA2_MACD_DIFF'] = trend.MACD(close=df['Close'], window_fast=12, window_slow=26, window_sign=9).macd_diff()
     result['TA2_MACD_SIGNAL'] = trend.MACD(close=df['Close'], window_fast=12, window_slow=26, window_sign=9).macd_signal()
@@ -292,7 +291,7 @@ def _compute_ta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     result['TA2_PSAR_DOWN'] = trend.PSARIndicator(high=df['High'], low=df['Low'], close=df['Close'], step=0.02, max_step=0.2).psar_down()
     result['TA2_PSAR_UP'] = trend.PSARIndicator(high=df['High'], low=df['Low'], close=df['Close'], step=0.02, max_step=0.2).psar_up()
     result['TA2_SMA'] = trend.SMAIndicator(close=df['Close'], window=20).sma_indicator()
-    result['TA2_TRIX'] = trend.TRIX(close=df['Close'], window=15).trix()
+    result['TA2_TRIX'] = trend.TRIXIndicator(close=df['Close'], window=15).trix()
     result['TA2_VORTEX_NEG'] = trend.VortexIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).vortex_indicator_neg()
     result['TA2_VORTEX_POS'] = trend.VortexIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).vortex_indicator_pos()
     result['TA2_VORTEX_DIFF'] = trend.VortexIndicator(high=df['High'], low=df['Low'], close=df['Close'], window=14).vortex_indicator_diff()
@@ -300,8 +299,8 @@ def _compute_ta_indicators(df: pd.DataFrame) -> pd.DataFrame:
 
     # Momentum Indicators
     momentum = ta.momentum
-    result['TA2_AWESOME_OSC'] = momentum.AwesomeOscillator(high=df['High'], low=df['Low'], window1=5, window2=34).awesome_oscillator()
-    result['TA2_KVO'] = momentum.KlingerOscillator(high=df['High'], low=df['Low'], close=df['Close'], volume=df['Volume'], short_period=34, long_period=55).klinger_oscillator()
+    result['TA2_KAMA'] = momentum.KAMAIndicator(close=df['Close'], window=10, pow1=2, pow2=30).kama()
+    result['TA2_AWESOME_OSC'] = momentum.AwesomeOscillatorIndicator(high=df['High'], low=df['Low'], window1=5, window2=34).awesome_oscillator()
     result['TA2_PPO'] = momentum.PercentagePriceOscillator(close=df['Close'], window_slow=26, window_fast=12, window_sign=9).ppo()
     result['TA2_PPO_HIST'] = momentum.PercentagePriceOscillator(close=df['Close'], window_slow=26, window_fast=12, window_sign=9).ppo_hist()
     result['TA2_PPO_SIGNAL'] = momentum.PercentagePriceOscillator(close=df['Close'], window_slow=26, window_fast=12, window_sign=9).ppo_signal()
@@ -334,13 +333,13 @@ def _compute_ta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     result['TA2_DONCHIAN_M'] = volatility.DonchianChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20).donchian_channel_mband()
     result['TA2_DONCHIAN_PBAND'] = volatility.DonchianChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20).donchian_channel_pband()
     result['TA2_DONCHIAN_WBAND'] = volatility.DonchianChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20).donchian_channel_wband()
-    result['TA2_KELTNER_H'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, atr_window=10).keltner_channel_hband()
-    result['TA2_KELTNER_H_IND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, atr_window=10).keltner_channel_hband_indicator()
-    result['TA2_KELTNER_L'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, atr_window=10).keltner_channel_lband()
-    result['TA2_KELTNER_L_IND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, atr_window=10).keltner_channel_lband_indicator()
-    result['TA2_KELTNER_M'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, atr_window=10).keltner_channel_mband()
-    result['TA2_KELTNER_PBAND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, atr_window=10).keltner_channel_pband()
-    result['TA2_KELTNER_WBAND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, atr_window=10).keltner_channel_wband()
+    result['TA2_KELTNER_H'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, window_atr=10).keltner_channel_hband()
+    result['TA2_KELTNER_H_IND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, window_atr=10).keltner_channel_hband_indicator()
+    result['TA2_KELTNER_L'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, window_atr=10).keltner_channel_lband()
+    result['TA2_KELTNER_L_IND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, window_atr=10).keltner_channel_lband_indicator()
+    result['TA2_KELTNER_M'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, window_atr=10).keltner_channel_mband()
+    result['TA2_KELTNER_PBAND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, window_atr=10).keltner_channel_pband()
+    result['TA2_KELTNER_WBAND'] = volatility.KeltnerChannel(high=df['High'], low=df['Low'], close=df['Close'], window=20, window_atr=10).keltner_channel_wband()
 
     # Volume Indicators
     volume = ta.volume
@@ -357,7 +356,6 @@ def _compute_ta_indicators(df: pd.DataFrame) -> pd.DataFrame:
 
     # Others
     others = ta.others
-    result['TA2_CUM_LOG_RETURN'] = others.CumulativeLogReturnIndicator(close=df['Close']).cumulative_log_return()
     result['TA2_CUM_RETURN'] = others.CumulativeReturnIndicator(close=df['Close']).cumulative_return()
     result['TA2_DAILY_LOG_RETURN'] = others.DailyLogReturnIndicator(close=df['Close']).daily_log_return()
     result['TA2_DAILY_RETURN'] = others.DailyReturnIndicator(close=df['Close']).daily_return()
