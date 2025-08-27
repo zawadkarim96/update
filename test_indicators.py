@@ -19,7 +19,8 @@ def test_get_all_indicators(sample_df):
     df_ind = get_all_indicators(sample_df, include_price=True)
     assert all(col in df_ind.columns for col in ['Open', 'High', 'Low', 'Close', 'Volume'])
     assert 'TA_RSI_14' in df_ind.columns  # Example TA-Lib indicator
-    assert 'PTA_EMA_20' in df_ind.columns  # Example pandas_ta indicator
+    assert 'PTA_SMA_10' in df_ind.columns  # Example pandas_ta indicator
+    assert 'PTA_PSARI_002_02' in df_ind.columns  # PSAR long should be present
     assert not df_ind.isnull().all().any()  # No all-NaN columns
     assert len(df_ind) == len(sample_df)
 
