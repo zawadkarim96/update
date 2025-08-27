@@ -33,7 +33,13 @@ class StrategyManager:
         weighted_signals = pd.DataFrame(index=df.index)
         for strat in self.active_strategies:
             weighted_signals[strat] = signals[strat] * self.weights[strat]
-        signals['aggregate'] = weighted_signals.mean(axis=1).apply(
+
+        weighted_sum = sum(
+            weighted_signals[strat] for strat in self.active_strategies
+        )
+        total_weight = sum(self.weights[strat] for strat in self.active_strategies)
+
+        signals['aggregate'] = (weighted_sum / total_weight).apply(
             lambda x: 1 if x > threshold else -1 if x < -threshold else 0
         )
         return signals
