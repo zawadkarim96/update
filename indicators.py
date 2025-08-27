@@ -252,7 +252,12 @@ def _compute_pandasta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     indicators['PTA_MFI_14'] = pta.mfi(df['High'], df['Low'], df['Close'], df['Volume'], length=14)
     indicators['PTA_ROC_10'] = pta.roc(df['Close'], length=10)
     indicators['PTA_WILLR_14'] = pta.willr(df['High'], df['Low'], df['Close'], length=14)
-    indicators['PTA_PSARI_002_02'] = pta.psar(df['High'], df['Low'], df['Close'])['PSARl_0.015_0.015']
+    # pandas_ta encodes the acceleration factors in the PSAR column names, which can vary
+    # across versions. Select the long PSAR column dynamically to avoid KeyErrors like
+    # "PSARl_0.015_0.015" when default parameters change.
+    psar_df = pta.psar(df['High'], df['Low'], df['Close'])
+    psar_long = psar_df.filter(like='PSARl').iloc[:, 0]
+    indicators['PTA_PSARI_002_02'] = psar_long
     indicators['PTA_AO'] = pta.ao(df['High'], df['Low'])
     indicators['PTA_KAMA_10_2_30'] = pta.kama(df['Close'], length=10, fast=2, slow=30)
     indicators['PTA_PPO_12_26_9'] = pta.ppo(df['Close'], fast=12, slow=26, signal=9)['PPO_12_26_9']
@@ -263,11 +268,19 @@ def _compute_pandasta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     indicators['PTA_VWAP'] = pta.vwap(df['High'], df['Low'], df['Close'], df['Volume'])
     indicators['PTA_VWMA_20'] = pta.vwma(df['Close'], df['Volume'], length=20)
     indicators['PTA_HMA_14'] = pta.hma(df['Close'], length=14)
-    indicators['PTA_ICHIMOKU_TENKAN'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ITS_9']
-    indicators['PTA_ICHIMOKU_KIJUN'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['IKS_26']
-    indicators['PTA_ICHIMOKU_SENKOU_A'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ISA_9']
-    indicators['PTA_ICHIMOKU_SENKOU_B'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ISB_26']
-    indicators['PTA_ICHIMOKU_CHIKOU'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ICS_26']
+    # pandas_ta changed ichimoku's return type in recent releases; handle DataFrame or
+    # tuple outputs and ignore failures so other indicators still compute.
+    try:
+        ichimoku = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)
+        if isinstance(ichimoku, tuple):
+            ichimoku = ichimoku[0]
+        indicators['PTA_ICHIMOKU_TENKAN'] = ichimoku['ITS_9']
+        indicators['PTA_ICHIMOKU_KIJUN'] = ichimoku['IKS_26']
+        indicators['PTA_ICHIMOKU_SENKOU_A'] = ichimoku['ISA_9']
+        indicators['PTA_ICHIMOKU_SENKOU_B'] = ichimoku['ISB_26']
+        indicators['PTA_ICHIMOKU_CHIKOU'] = ichimoku['ICS_26']
+    except Exception as e:
+        logger.debug("pandas_ta ichimoku failed: %s", e)
 
     return pd.DataFrame(indicators, index=df.index)
 
