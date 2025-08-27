@@ -1,26 +1,33 @@
 import pandas as pd
 import numpy as np
 import logging
+import warnings
 from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
+# Provide removed aliases for numpy 2.0+ so older libraries keep working
+if not hasattr(np, "NaN"):
+    np.NaN = np.nan
+
+warnings.filterwarnings("ignore", category=FutureWarning, module="ta")
+
 try:
     import talib
-except ImportError:
-    logger.warning("TA-Lib not installed. Skipping TA-Lib indicators.")
+except Exception as e:  # pragma: no cover - optional dependency
+    logger.warning("TA-Lib import failed (%s). Skipping TA-Lib indicators.", e)
     talib = None
 
 try:
     import pandas_ta as pta
-except ImportError:
-    logger.warning("pandas_ta not installed. Skipping pandas_ta indicators.")
+except Exception as e:  # pragma: no cover - optional dependency
+    logger.warning("pandas_ta import failed (%s). Skipping pandas_ta indicators.", e)
     pta = None
 
 try:
     import ta
-except ImportError:
-    logger.warning("ta library not installed. Skipping ta indicators.")
+except Exception as e:  # pragma: no cover - optional dependency
+    logger.warning("ta library import failed (%s). Skipping ta indicators.", e)
     ta = None
 
 def _compute_talib_indicators(df: pd.DataFrame) -> pd.DataFrame:
@@ -245,7 +252,12 @@ def _compute_pandasta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     indicators['PTA_MFI_14'] = pta.mfi(df['High'], df['Low'], df['Close'], df['Volume'], length=14)
     indicators['PTA_ROC_10'] = pta.roc(df['Close'], length=10)
     indicators['PTA_WILLR_14'] = pta.willr(df['High'], df['Low'], df['Close'], length=14)
-    indicators['PTA_PSARI_002_02'] = pta.psar(df['High'], df['Low'], df['Close'])['PSARl_0.015_0.015']
+    # pandas_ta encodes the acceleration factors in the PSAR column names, which can vary
+    # across versions. Select the long PSAR column dynamically to avoid KeyErrors like
+    # "PSARl_0.015_0.015" when default parameters change.
+    psar_df = pta.psar(df['High'], df['Low'], df['Close'])
+    psar_long = psar_df.filter(like='PSARl').iloc[:, 0]
+    indicators['PTA_PSARI_002_02'] = psar_long
     indicators['PTA_AO'] = pta.ao(df['High'], df['Low'])
     indicators['PTA_KAMA_10_2_30'] = pta.kama(df['Close'], length=10, fast=2, slow=30)
     indicators['PTA_PPO_12_26_9'] = pta.ppo(df['Close'], fast=12, slow=26, signal=9)['PPO_12_26_9']
@@ -256,11 +268,19 @@ def _compute_pandasta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     indicators['PTA_VWAP'] = pta.vwap(df['High'], df['Low'], df['Close'], df['Volume'])
     indicators['PTA_VWMA_20'] = pta.vwma(df['Close'], df['Volume'], length=20)
     indicators['PTA_HMA_14'] = pta.hma(df['Close'], length=14)
-    indicators['PTA_ICHIMOKU_TENKAN'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ITS_9']
-    indicators['PTA_ICHIMOKU_KIJUN'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['IKS_26']
-    indicators['PTA_ICHIMOKU_SENKOU_A'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ISA_9']
-    indicators['PTA_ICHIMOKU_SENKOU_B'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ISB_26']
-    indicators['PTA_ICHIMOKU_CHIKOU'] = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)['ICS_26']
+    # pandas_ta changed ichimoku's return type in recent releases; handle DataFrame or
+    # tuple outputs and ignore failures so other indicators still compute.
+    try:
+        ichimoku = pta.ichimoku(df['High'], df['Low'], df['Close'], tenkan=9, kijun=26, senkou=52)
+        if isinstance(ichimoku, tuple):
+            ichimoku = ichimoku[0]
+        indicators['PTA_ICHIMOKU_TENKAN'] = ichimoku['ITS_9']
+        indicators['PTA_ICHIMOKU_KIJUN'] = ichimoku['IKS_26']
+        indicators['PTA_ICHIMOKU_SENKOU_A'] = ichimoku['ISA_9']
+        indicators['PTA_ICHIMOKU_SENKOU_B'] = ichimoku['ISB_26']
+        indicators['PTA_ICHIMOKU_CHIKOU'] = ichimoku['ICS_26']
+    except Exception as e:
+        logger.debug("pandas_ta ichimoku failed: %s", e)
 
     return pd.DataFrame(indicators, index=df.index)
 
@@ -421,6 +441,7 @@ def get_all_indicators(df: pd.DataFrame, include_price=False, multi_data: Option
         _compute_custom_indicators(df, multi_data)
     ]
     result = pd.concat(frames, axis=1)
+    result.replace([np.inf, -np.inf], np.nan, inplace=True)
     if include_price:
         result = pd.concat([result, df[['Open', 'High', 'Low', 'Close', 'Volume']]], axis=1)
-    return result.fillna(method='ffill').fillna(0)  # Forward fill then 0 for remaining NaNs
+    return result.ffill().fillna(0)  # Forward fill then 0 for remaining NaNs

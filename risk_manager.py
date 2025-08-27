@@ -17,7 +17,10 @@ try:  # Optional dependency – TA‑Lib provides many indicators
 except Exception:  # pragma: no cover - executed when TA‑Lib isn't installed
     talib = None
 
-import MetaTrader5 as mt5  # this is a tiny stub during testing
+try:
+    import MetaTrader5 as mt5  # type: ignore
+except Exception:  # pragma: no cover - executed when MT5 isn't installed
+    import metatrader5_stub as mt5  # type: ignore
 
 from config import RISK_PER_TRADE, INITIAL_CAPITAL
 
