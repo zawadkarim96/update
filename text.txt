@@ -11,3 +11,12 @@ mt5_trading_bot/
 ├── requirements.txt        # Dependencies
 ├── main.py                 # Entry point for running the bot
 └── data/                   # Folder for historical data (e.g., CSVs)
+
+## Testing
+
+Install dependencies and run the test suite with:
+
+    pip install -r requirements.txt
+    pytest
+
+The tests use the `pytest-mock` plugin for the `mocker` fixture.
