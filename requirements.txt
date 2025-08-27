@@ -8,3 +8,4 @@ llama-cpp-python==0.2.89
 gym==0.26.2
 stable-baselines3==2.3.2
 gymnasium==0.29.1
+pytest-mock
