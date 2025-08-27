@@ -4,6 +4,7 @@ pandas==2.2.2
 numpy>=1.26.4
 scikit-learn==1.5.1
 pandas-ta>=0.3.14b0
+ta>=0.10.2
 llama-cpp-python==0.2.89
 gym==0.26.2
 stable-baselines3==2.3.2
