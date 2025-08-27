@@ -7,20 +7,20 @@ logger = logging.getLogger(__name__)
 
 try:
     import talib
-except ImportError:
-    logger.warning("TA-Lib not installed. Skipping TA-Lib indicators.")
+except Exception as e:  # pragma: no cover - optional dependency
+    logger.warning("TA-Lib import failed (%s). Skipping TA-Lib indicators.", e)
     talib = None
 
 try:
     import pandas_ta as pta
-except ImportError:
-    logger.warning("pandas_ta not installed. Skipping pandas_ta indicators.")
+except Exception as e:  # pragma: no cover - optional dependency
+    logger.warning("pandas_ta import failed (%s). Skipping pandas_ta indicators.", e)
     pta = None
 
 try:
     import ta
-except ImportError:
-    logger.warning("ta library not installed. Skipping ta indicators.")
+except Exception as e:  # pragma: no cover - optional dependency
+    logger.warning("ta library import failed (%s). Skipping ta indicators.", e)
     ta = None
 
 def _compute_talib_indicators(df: pd.DataFrame) -> pd.DataFrame:
@@ -423,4 +423,4 @@ def get_all_indicators(df: pd.DataFrame, include_price=False, multi_data: Option
     result = pd.concat(frames, axis=1)
     if include_price:
         result = pd.concat([result, df[['Open', 'High', 'Low', 'Close', 'Volume']]], axis=1)
-    return result.fillna(method='ffill').fillna(0)  # Forward fill then 0 for remaining NaNs
+    return result.ffill().fillna(0)  # Forward fill then 0 for remaining NaNs
