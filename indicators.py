@@ -256,8 +256,6 @@ def _compute_pandasta_indicators(df: pd.DataFrame) -> pd.DataFrame:
     # across versions. Select the long PSAR column dynamically to avoid KeyErrors like
     # "PSARl_0.015_0.015" when default parameters change.
     psar_df = pta.psar(df['High'], df['Low'], df['Close'])
-    psar_long = psar_df.filter(like='PSARl').iloc[:, 0]
-    indicators['PTA_PSARI_002_02'] = psar_long
     indicators['PTA_AO'] = pta.ao(df['High'], df['Low'])
     indicators['PTA_KAMA_10_2_30'] = pta.kama(df['Close'], length=10, fast=2, slow=30)
     indicators['PTA_PPO_12_26_9'] = pta.ppo(df['Close'], fast=12, slow=26, signal=9)['PPO_12_26_9']

@@ -6,6 +6,21 @@ try:  # TA‑Lib is optional; provide fallbacks when unavailable
 except Exception:  # pragma: no cover - executed when TA‑Lib isn't installed
     talib = None
 
+
+def _rsi(series: pd.Series, period: int = 14) -> pd.Series:
+    """Return RSI using TA‑Lib when available, otherwise a pandas fallback."""
+    if talib is not None:  # pragma: no cover - exercised when TA‑Lib is installed
+        return talib.RSI(series, timeperiod=period)
+
+    # pandas implementation based on Wilder's smoothing
+    delta = series.diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.ewm(alpha=1 / period, min_periods=period).mean()
+    avg_loss = loss.ewm(alpha=1 / period, min_periods=period).mean()
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))
+
 # 1
 def moving_average_crossover(df, multi_data=None, sym=None, news_bias=0):
     """Simple moving‑average crossover strategy.
@@ -49,12 +64,12 @@ def macd_divergence(df, multi_data=None, sym=None, news_bias=0):
                    np.where((price_diff < 0) & (macd_diff > 0), 1, 0))
 # 6
 def rsi_overbought_oversold(df, multi_data=None, sym=None, news_bias=0):
-    rsi = talib.RSI(df['Close'], timeperiod=14)
+    rsi = _rsi(df['Close'])
     return np.where(rsi > 70, -1, np.where(rsi < 30, 1, 0))
 
 # 7
 def rsi_divergence(df, multi_data=None, sym=None, news_bias=0):
-    rsi = talib.RSI(df['Close'], timeperiod=14)
+    rsi = _rsi(df['Close'])
     price_diff = df['Close'] - df['Close'].shift(5)
     rsi_diff = rsi - rsi.shift(5)
     return np.where((price_diff > 0) & (rsi_diff < 0), -1,
@@ -2519,5 +2534,12 @@ def evolved_macd_905(df, multi_data=None, sym=None, news_bias=0):
 # New strategy: evolved_macd_477
 def evolved_macd_477(df, multi_data=None, sym=None, news_bias=0):
     macd, signal, hist = talib.MACD(df['Close'], fastperiod=9, slowperiod=23, signalperiod=5)
+    return np.where(macd > signal, 1, np.where(macd < signal, -1, 0))
+
+
+
+# New strategy: evolved_macd_567
+def evolved_macd_567(df, multi_data=None, sym=None, news_bias=0):
+    macd, signal, hist = talib.MACD(df['Close'], fastperiod=18, slowperiod=34, signalperiod=6)
     return np.where(macd > signal, 1, np.where(macd < signal, -1, 0))
 
