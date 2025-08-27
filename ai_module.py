@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import random
 import collections
+from pathlib import Path
 from config import LLM_MODEL_PATH, RL_ENV_PARAMS
 from backtester import backtest
 from strategy_modifier import add_new_strategy
@@ -217,7 +218,14 @@ class TradingDQN:
 
 class AIModule:
     def __init__(self):
-        self.llm = Llama(model_path=LLM_MODEL_PATH, n_ctx=512, n_batch=512) if Llama else None
+        default_path = Path(__file__).with_name("qwen-3b.gguf")
+        model_path = Path(LLM_MODEL_PATH) if LLM_MODEL_PATH else default_path
+        if Llama and model_path.is_file():
+            self.llm = Llama(model_path=str(model_path), n_ctx=512, n_batch=512)
+        else:
+            if not model_path.is_file():
+                logger.warning("LLM model path not set; proceeding without local LLM")
+            self.llm = None
         self.rl_model = None
         self.dqn = None
         self.genetic_optimizer = None
