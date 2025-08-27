@@ -31,7 +31,12 @@ except Exception:  # pragma: no cover - executed when MT5 isn't available
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def main(live_mode=False, active_strategies=['moving_average_crossover', 'rsi_overbought_oversold']):
+def main(live_mode=False, active_strategies=None):
+    if active_strategies is None:
+        active_strategies = [
+            "moving_average_crossover",
+            "rsi_overbought_oversold",
+        ]
     try:
         broker = MT5Broker()
     except Exception as e:
