@@ -9,6 +9,7 @@ indicators and strategy variations is handled by ``indicators.py`` and
 ``strategies.py``.
 
 Usage:
+
     # From CSV data
     python start_ai.py data/historical.csv
 
@@ -19,16 +20,22 @@ The CSV must contain columns: Date, Open, High, Low, Close, Volume.  When a
 symbol is provided instead of a CSV file the script will attempt to download
 the most recent data from MetaTrader 5 and fall back to a synthetic data source
 if MT5 is unavailable.
+=======
+
+
 """
 
 from __future__ import annotations
 
 import logging
+
 import os
 import sys
 from datetime import timedelta
 from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
+=======
+
 
 import pandas as pd
 
@@ -44,6 +51,9 @@ try:  # Optional torch dependency for saving trained models
     import torch
 except Exception:  # pragma: no cover - torch is optional
     torch = None
+=======
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +91,8 @@ def load_recent_data(source: str, years: int = 5, timeframe: str = "TIMEFRAME_M1
     count = bars_per_year.get(timeframe, 365 * 24 * 60) * years
     count = min(count, 100_000)  # Avoid huge downloads
     return broker.get_historical_data(source, timeframe, count)
+=======
+
 
 
 def run_multi_timeframe_backtests(df: pd.DataFrame, timeframes: List[str]) -> None:
@@ -114,16 +126,22 @@ def train_rl_agent(df: pd.DataFrame) -> None:
 
 def main(source: str) -> None:
     df = load_recent_data(source)
+=======
+
     df = get_all_indicators(df)
     run_multi_timeframe_backtests(df, ["M1", "H1", "D1"])
     env = TradingEnv(df)
     logger.info("RL environment with %d steps ready", len(df))
     train_rl_agent(df)
+=======
+
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     if len(sys.argv) < 2:
         print("Usage: python start_ai.py <csv path or symbol>")
+=======
+
         sys.exit(1)
     main(sys.argv[1])
