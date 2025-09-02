@@ -2521,3 +2521,10 @@ def evolved_macd_477(df, multi_data=None, sym=None, news_bias=0):
     macd, signal, hist = talib.MACD(df['Close'], fastperiod=9, slowperiod=23, signalperiod=5)
     return np.where(macd > signal, 1, np.where(macd < signal, -1, 0))
 
+
+
+# New strategy: evolved_macd_627
+def evolved_macd_627(df, multi_data=None, sym=None, news_bias=0):
+    macd, signal, hist = talib.MACD(df['Close'], fastperiod=5, slowperiod=38, signalperiod=11)
+    return np.where(macd > signal, 1, np.where(macd < signal, -1, 0))
+
