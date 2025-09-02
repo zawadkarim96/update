@@ -21,13 +21,14 @@ import sys
 from datetime import timedelta
 from typing import List
 
+
 import pandas as pd
 
 import strategies
 from indicators import get_all_indicators
 from backtester import backtest
 from strategy_manager import StrategyManager
-from ai_module import TradingEnv
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +44,7 @@ def load_recent_data(path: str, years: int = 5) -> pd.DataFrame:
 def run_multi_timeframe_backtests(df: pd.DataFrame, timeframes: List[str]) -> None:
     """Run backtests for each strategy and timeframe, logging Sharpe ratios."""
     strategy_names = list(strategies.strategies.keys())[:300]
-    sm = StrategyManager(strategy_names)
-    for tf in timeframes:
-        logger.info("Running %s backtests with %d strategies", tf, len(strategy_names))
-        for strat in strategy_names:
-            result = backtest(df.copy(), strat, timeframe=tf)
-            logger.info("%s @ %s Sharpe: %.4f", strat, tf, result["sharpe"])
+
 
 
 def main(csv_path: str) -> None:
@@ -57,6 +53,7 @@ def main(csv_path: str) -> None:
     run_multi_timeframe_backtests(df, ["M1", "H1", "D1"])
     env = TradingEnv(df)
     logger.info("RL environment with %d steps ready", len(df))
+
 
 
 if __name__ == "__main__":
