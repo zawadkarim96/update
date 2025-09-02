@@ -42,20 +42,24 @@ class MT5Broker:
         if MT5_STUB:
             raise RuntimeError("MetaTrader5 package is not available")
         if not mt5.initialize(path=MT5_PATH):
-            raise Exception("MT5 initialization failed")
+            code, msg = mt5.last_error()
+            raise RuntimeError(f"MT5 initialization failed: {code} {msg}")
         for _ in range(3):  # Retry login
             if mt5.login(MT5_ACCOUNT, password=MT5_PASSWORD, server=MT5_SERVER):
                 break
             time.sleep(5)
         else:
-            raise Exception("MT5 login failed after retries")
+            code, msg = mt5.last_error()
+            raise RuntimeError(f"MT5 login failed: {code} {msg}")
 
     def get_historical_data(self, symbol, timeframe, count=1000):
         if not mt5.symbol_select(symbol, True):
-            raise Exception(f"Failed to select symbol {symbol}")
+            code, msg = mt5.last_error()
+            raise Exception(f"Failed to select symbol {symbol}: {code} {msg}")
         rates = mt5.copy_rates_from_pos(symbol, getattr(mt5, timeframe), 0, count)
         if rates is None or len(rates) == 0:
-            raise Exception(f"Failed to fetch data for {symbol}")
+            code, msg = mt5.last_error()
+            raise Exception(f"Failed to fetch data for {symbol}: {code} {msg}")
         df = pd.DataFrame(rates)
         # Handle if columns are numerical (list of tuples case in older versions)
         if len(df.columns) > 0 and isinstance(df.columns[0], int):
@@ -68,7 +72,8 @@ class MT5Broker:
 
     def get_real_time_data(self, symbol, timeframe, from_date, to_date):
         if not mt5.symbol_select(symbol, True):
-            raise Exception(f"Failed to select symbol {symbol}")
+            code, msg = mt5.last_error()
+            raise Exception(f"Failed to select symbol {symbol}: {code} {msg}")
         rates = mt5.copy_rates_range(symbol, getattr(mt5, timeframe), from_date, to_date)
         if rates is None or len(rates) == 0:
             return pd.DataFrame()
