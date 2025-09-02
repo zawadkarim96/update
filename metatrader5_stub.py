@@ -64,3 +64,7 @@ def positions_get(*args, **kwargs):
 
 def order_send(request):
     return OrderSendResult()
+
+
+def last_error():
+    return (0, "stub")
